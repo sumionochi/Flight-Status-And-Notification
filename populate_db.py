@@ -21,5 +21,6 @@ flights = [
     }
 ]
 
+flights_collection.delete_many({})
 flights_collection.insert_many(flights)
 print("Database populated with mock data.")

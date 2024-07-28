@@ -39,7 +39,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 method_frame, header_frame, body = channel.basic_get(queue='flight_status')
                 if method_frame:
                     data = json.loads(body)
-                    print("Sending WebSocket message:", data)  # Add this line for logging
                     flights_collection.update_one({"flightNumber": data["flightNumber"]}, {"$set": data})
                     await websocket.send_text(json.dumps(data))
                     channel.basic_ack(method_frame.delivery_tag)
