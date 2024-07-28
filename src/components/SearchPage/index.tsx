@@ -4,7 +4,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 interface Flight {
-  id: number;
+  _id: string; // Using MongoDB's default id field
   flightNumber: string;
   status: string;
   gate: string;
@@ -12,7 +12,7 @@ interface Flight {
   arrivalTime: string;
 }
 
-function SearchPage() {
+const SearchPage: React.FC = () => {
   const [flights, setFlights] = useState<Flight[]>([]);
   const [selectedFlight, setSelectedFlight] = useState<Flight | null>(null);
 
@@ -20,10 +20,20 @@ function SearchPage() {
     fetchFlights();
 
     const socket = new WebSocket('ws://localhost:8000/ws/flights');
+    socket.onopen = () => {
+      console.log('WebSocket connection opened');
+    };
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data) as Flight;
+      console.log('Received data from WebSocket:', data);
       toast.info(`Flight ${data.flightNumber} status changed to ${data.status}`);
       fetchFlights();
+    };
+    socket.onerror = (error) => {
+      console.log('WebSocket error:', error);
+    };
+    socket.onclose = (event) => {
+      console.log('WebSocket connection closed:', event);
     };
 
     return () => {
@@ -35,6 +45,7 @@ function SearchPage() {
     try {
       const response = await axios.get<Flight[]>('http://localhost:8000/api/flights');
       setFlights(response.data);
+      console.log('Fetched flights:', response.data);
     } catch (error) {
       console.error('Error fetching flights:', error);
     }
@@ -48,13 +59,17 @@ function SearchPage() {
     <div className="App">
       <h1>Flight Status Updates</h1>
       <div className="flight-list">
-        {flights.map((flight) => (
-          <div key={flight.id} onClick={() => handleFlightSelect(flight)}>
-            <h2>{flight.flightNumber}</h2>
-            <p>Status: {flight.status}</p>
-            <p>Gate: {flight.gate}</p>
-          </div>
-        ))}
+        {flights.length > 0 ? (
+          flights.map((flight) => (
+            <div key={flight._id} onClick={() => handleFlightSelect(flight)}>
+              <h2>{flight.flightNumber}</h2>
+              <p>Status: {flight.status}</p>
+              <p>Gate: {flight.gate}</p>
+            </div>
+          ))
+        ) : (
+          <p>No flights available</p>
+        )}
       </div>
       {selectedFlight && (
         <div className="flight-details">
@@ -66,7 +81,7 @@ function SearchPage() {
           <p>Arrival Time: {selectedFlight.arrivalTime}</p>
         </div>
       )}
-      <ToastContainer />
+      <ToastContainer/>
     </div>
   );
 }
