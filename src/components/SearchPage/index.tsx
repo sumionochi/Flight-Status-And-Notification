@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface Flight {
   id: number;
@@ -20,6 +22,7 @@ function SearchPage() {
     const socket = new WebSocket('ws://localhost:8000/ws/flights');
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data) as Flight;
+      toast.info(`Flight ${data.flightNumber} status changed to ${data.status}`);
       fetchFlights();
     };
 
@@ -63,6 +66,7 @@ function SearchPage() {
           <p>Arrival Time: {selectedFlight.arrivalTime}</p>
         </div>
       )}
+      <ToastContainer />
     </div>
   );
 }
