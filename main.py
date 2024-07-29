@@ -4,6 +4,7 @@ from pymongo import MongoClient
 import pika
 import json
 import asyncio
+import os
 
 app = FastAPI()
 
@@ -15,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-client = MongoClient("mongodb+srv://aadityasrivastavaconnect:M4D8pEnfXuj4VCPm@cluster0.9efwohs.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+client = MongoClient(os.getenv('MONGODB_CONNECTION_STRING'))
 db = client["flight_db"]
 flights_collection = db["flights"]
 
