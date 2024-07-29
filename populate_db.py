@@ -1,7 +1,12 @@
 from pymongo import MongoClient
+from dotenv import load_dotenv
 import os
 
-client = MongoClient(os.getenv('MONGODB_CONNECTION_STRING'))
+load_dotenv()
+
+MONGODB_CONNECTION_STRING = os.getenv('MONGODB_CONNECTION_STRING')
+
+client = MongoClient(MONGODB_CONNECTION_STRING)
 db = client["flight_db"]
 flights_collection = db["flights"]
 
@@ -22,6 +27,7 @@ flights = [
     }
 ]
 
+# Populate the database
 flights_collection.delete_many({})
 flights_collection.insert_many(flights)
 print("Database populated with mock data.")
