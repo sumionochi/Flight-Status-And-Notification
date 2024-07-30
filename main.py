@@ -1,5 +1,4 @@
-import asyncio
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pymongo import MongoClient
 import pika
@@ -8,6 +7,7 @@ import os
 import requests
 from twilio.rest import Client
 from dotenv import load_dotenv
+import asyncio
 
 load_dotenv()
 
@@ -21,7 +21,7 @@ TWILIO_PHONE_NUMBER = os.getenv('TWILIO_PHONE_NUMBER')
 NOTIFICATION_TO_PHONE = os.getenv('NOTIFICATION_TO_PHONE')
 
 # MongoDB setup
-MONGODB_CONNECTION_STRING = os.getenv('MONGODB_CONNECTION_STRING')
+MONGODB_CONNECTION_STRING='mongodb+srv://aadityasrivastavaconnect:M4D8pEnfXuj4VCPm@cluster0.9efwohs.mongodb.net/khyalaidb?retryWrites=true&w=majority&appName=Cluster0'
 client = MongoClient(MONGODB_CONNECTION_STRING)
 db = client["flight_db"]
 flights_collection = db["flights"]
@@ -80,8 +80,19 @@ def send_sms_notification(flight):
         print(f"Error sending SMS: {e}")
 
 @app.get("/api/flights")
-async def get_flights():
-    flights = list(flights_collection.find({}, {"_id": 0}))
+async def get_flights(
+    departing: str = Query(None),
+    arriving: str = Query(None),
+    flightNo: str = Query(None)
+):
+    query = {}
+    if departing:
+        query["departing"] = departing
+    if arriving:
+        query["arriving"] = arriving
+    if flightNo:
+        query["flightNumber"] = flightNo
+    flights = list(flights_collection.find(query, {"_id": 0}))
     return flights
 
 @app.post("/api/flights/update")
